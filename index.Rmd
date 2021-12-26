@@ -1,0 +1,80 @@
+---
+title: "WhatsApp_Data_Analysis"
+author: "18F-0149"
+date: "12/26/2021"
+output: pdf_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(stringr)
+library(ggplot2)
+library("rwhatsapp")
+library("dplyr")
+library("lubridate")
+library("tidyr")
+library("tidytext")
+library("stopwords")
+```
+
+## R Markdown
+
+This is an R Markdown document. Markdown is a simple formatting syntax for authoring HTML, PDF, and MS Word documents. For more details on using R Markdown see <http://rmarkdown.rstudio.com>.
+
+When you click the **Knit** button a document will be generated that includes both content as well as the output of any embedded R code chunks within the document. You can embed an R code chunk like this:
+
+```{r cars}
+chat_data <- rwa_read("C:\\Users\\HP\\Desktop\\practice\\whatsapp_chat.txt") %>% 
+  filter(!is.na(author)) 
+
+```
+
+## Including Plots
+
+You can also embed plots, for example:
+
+```{r pressure, echo=FALSE}
+chat_data %>%
+  
+  mutate(day = date(time)) %>%
+  count(day) %>%
+  ggplot(aes(x = day, y = n)) +
+  geom_bar(stat = "identity") +
+  ylab("") + xlab("") +
+  ggtitle("Number of messages with respect to days")
+
+
+
+chat_data %>%
+  unnest(emoji) %>%
+  count(author, emoji, sort = TRUE) %>%
+  group_by(author) %>%
+  top_n(n = 6, n) %>%
+  ggplot(aes(x = reorder(emoji, n), y = n, fill = author)) +
+  geom_col(show.legend = FALSE) +
+  ylab("") +
+  xlab("") +
+  coord_flip() +
+  facet_wrap(~author, ncol = 2, scales = "free_y")  +
+  ggtitle("Mostly used emojies in Chat")
+
+
+
+chat_data %>%
+  unnest_tokens(input = text,
+                output = word) %>%
+  count(author, word, sort = TRUE) %>%
+  group_by(author) %>%
+  top_n(n = 4, n) %>%
+  ggplot(aes(x = reorder_within(word, n, author), y = n, fill = author)) +
+  geom_col(show.legend = FALSE) +
+  ylab("") +
+  xlab("") +
+  coord_flip() +
+  facet_wrap(~author, ncol = 2, scales = "free_y") +
+  scale_x_reordered() +
+  ggtitle("Mostly used words in Chat")
+
+```
+
+Note that the `echo = FALSE` parameter was added to the code chunk to prevent printing of the R code that generated the plot.
